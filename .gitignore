@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env.local
+.env
+data/
+public/data.json
+*.log
+.shot-*.png
+tsconfig.tsbuildinfo
+.dl.log
+.npm.log
+.vite.log
