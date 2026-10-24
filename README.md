@@ -70,3 +70,14 @@ Sem chave, o chat responde em modo offline com os insights do relatório.
 ## Squad
 
 _Hackathon SEMCOMP 2026 — equipe._
+
+## Busca semântica (Ollama + VODs)
+
+- `scripts/build_round_index.py` gera `public/rounds-index.json`: 1 narrativa por round
+  (mapa, compra, site, plant, kill feed, clutch, tipo de round) + embeddings via
+  **Ollama local** (`nomic-embed-text`, 768-dim). Sem Ollama → índice lexical.
+- Aba **🔍 Busca**: consulta em linguagem natural → rounds ranqueados por similaridade
+  de cosseno (embed da query via Ollama em runtime) — clique abre o round exato.
+- Também consulta o serviço local de **VODs** (`127.0.0.1:8765`) com timestamps do cast.
+- O agente ganhou as tools `buscar_rounds` (semântica sobre a base) e `buscar_vods`.
+- Proxies de dev (`/ollama`, `/vodapi`) no `vite.config.ts` evitam CORS.

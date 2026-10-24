@@ -5,6 +5,8 @@ import type { Dataset, Match, TeamId } from '../types'
 import { aggregatePlayers, aggregateTeam, analyze, type PlayerAgg, type TeamAgg } from './metrics'
 import { clutchMoments, roundMoments } from './moments'
 import { agentName, mapName, weaponName, trackerUrl } from './load'
+import { searchRounds } from './roundsearch'
+import { searchVods } from './vodsearch'
 
 export interface ToolDef {
   name: string
@@ -16,7 +18,7 @@ export interface ToolDef {
   }
 }
 
-export type ToolFn = (args: Record<string, string | number>) => string
+export type ToolFn = (args: Record<string, string | number>) => string | Promise<string>
 
 export interface Tool {
   declaration: ToolDef
@@ -298,6 +300,47 @@ export function buildTools(data: Dataset): Tool[] {
         }
       }
       return parts.length ? parts.join('\n\n') : 'Informe jogador ou time para filtrar os momentos.'
+    },
+  })
+
+  tools.push({
+    declaration: {
+      name: 'buscar_rounds',
+      description: 'Busca SEMÂNTICA nos 922 rounds da base (embeddings nomic-embed-text): descreva a situação ("retake falho no site A", "clutch 1v3 com operator", "anti-eco perdido") e recebe os rounds mais similares com narrativa completa e link spike:// para abrir o round exato. Use para achar padrões e exemplos concretos.',
+      parameters: {
+        type: 'object',
+        properties: { consulta: { type: 'string', description: 'Descrição da situação de round em português' } },
+        required: ['consulta'],
+      },
+    },
+    fn: async (args) => {
+      const { hits } = await searchRounds(String(args.consulta ?? ''), 6)
+      if (!hits.length) return 'Nada similar encontrado — tente descrever diferente.'
+      return hits
+        .map((h, i) =>
+          `${i + 1}. [Round ${h.round + 1} — ${h.map} (${h.event}, ${h.date})](spike://match/${h.matchId}?round=${h.round}) similaridade ${(h.score * 100).toFixed(0)}%\n${h.snippet.slice(0, 300)}`,
+        )
+        .join('\n\n')
+    },
+  })
+
+  tools.push({
+    declaration: {
+      name: 'buscar_vods',
+      description: 'Busca semântica em transcrições de VODs de broadcast (Champions) com timestamps — para referências de pros. O texto do cast está em inglês; consultas em inglês funcionam melhor ("site B retake", "clutch 1v2").',
+      parameters: {
+        type: 'object',
+        properties: { consulta: { type: 'string', description: 'Consulta (inglês recomendado)' } },
+        required: ['consulta'],
+      },
+    },
+    fn: async (args) => {
+      try {
+        const hits = await searchVods(String(args.consulta ?? ''), 5)
+        return hits.map((h, i) => `${i + 1}. [${h.mmss}] ${h.text.slice(0, 220)}`).join('\n') || 'sem resultados'
+      } catch (e) {
+        return `Serviço de VODs offline: ${e instanceof Error ? e.message : String(e)}`
+      }
     },
   })
 

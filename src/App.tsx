@@ -8,8 +8,9 @@ import MatchView from './views/MatchView'
 import PlayerView from './views/PlayerView'
 import TeamView from './views/TeamView'
 import CoachView from './views/CoachView'
+import SearchView from './views/SearchView'
 
-type Tab = 'coach' | 'dash' | 'match' | 'player' | 'team'
+type Tab = 'coach' | 'dash' | 'busca' | 'match' | 'player' | 'team'
 
 export interface AppSel {
   event: string
@@ -81,6 +82,7 @@ function Shell({ data }: { data: Dataset }) {
   const tabs: { id: Tab; label: string; disabled?: boolean }[] = [
     { id: 'coach', label: '🤖 Coach IA' },
     { id: 'dash', label: 'Visão Geral' },
+    { id: 'busca', label: '🔍 Busca' },
     { id: 'match', label: 'Partida', disabled: !selMatch },
     { id: 'player', label: 'Jogador', disabled: !playerAgg },
     { id: 'team', label: 'Time', disabled: !teamAgg },
@@ -151,6 +153,7 @@ function Shell({ data }: { data: Dataset }) {
         )}
       </div>
 
+      {tab === 'busca' && <SearchView />}
       {tab === 'dash' && (
         <Dashboard
           matches={matches}

@@ -99,7 +99,7 @@ export async function runCoachAgent(
       const tool = registry.get(fc.name)
       let result: string
       try {
-        result = tool ? tool.fn(args) : `Ferramenta "${fc.name}" não existe.`
+        result = tool ? await tool.fn(args) : `Ferramenta "${fc.name}" não existe.`
       } catch (e) {
         result = `Erro na ferramenta: ${e instanceof Error ? e.message : String(e)}`
       }
