@@ -4,7 +4,7 @@
 import type { Dataset, Match, TeamId } from '../types'
 import { aggregatePlayers, aggregateTeam, analyze, type PlayerAgg, type TeamAgg } from './metrics'
 import { clutchMoments, roundMoments } from './moments'
-import { agentName, mapName, weaponName } from './load'
+import { agentName, mapName, weaponName, trackerUrl } from './load'
 
 export interface ToolDef {
   name: string
@@ -43,7 +43,7 @@ function playerSummary(g: PlayerAgg): string {
   const weapons = Object.entries(g.byWeapon).sort((a, b) => b[1] - a[1]).slice(0, 5)
     .map(([w, n]) => `${weaponName(w)}:${n}`).join(', ')
   return JSON.stringify({
-    jogador: g.name, partidas: g.matches, vitorias: g.wins, rounds: g.rounds,
+    jogador: g.name, tracker: trackerUrl(g.name), partidas: g.matches, vitorias: g.wins, rounds: g.rounds,
     acs: g.acs, kd: Math.round(g.kd * 100) / 100, kda: `${g.kills}/${g.deaths}/${g.assists}`,
     adr: g.adr, hsPct: pc(g.hsPct), kast: pc(g.kast), plusMinus: g.plusMinus,
     fb: g.fb, fd: g.fd, fbAtaque: g.fbAtk, fbDefesa: g.fbDef, fdAtaque: g.fdAtk, fdDefesa: g.fdDef,

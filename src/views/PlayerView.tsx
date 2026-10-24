@@ -1,7 +1,7 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts'
 import type { PlayerAgg } from '../lib/metrics'
 import { slope } from '../lib/metrics'
-import { agentName, agentIcon, agentRole, weaponName, weaponIcon, weaponCat, fmt1, pct } from '../lib/load'
+import { agentName, agentIcon, agentRole, weaponName, weaponIcon, weaponCat, fmt1, pct, trackerUrl } from '../lib/load'
 import { playerFindings } from '../lib/coach'
 import CoachStrip from './CoachStrip'
 
@@ -42,7 +42,7 @@ export default function PlayerView({ agg, onOpenCoach }: Props) {
     <div>
       <div className="card">
         <div className="pheader">
-          <span className="pname">{agg.name}</span>
+          <span className="pname">{agg.name}<a className="tlink" href={trackerUrl(agg.name)} target="_blank" rel="noreferrer" title="Perfil no tracker.gg">↗ tracker</a></span>
           <span className="pill">{agg.matches} partidas · {agg.wins}V</span>
           <span className={`pill ${agg.wins / agg.matches >= 0.5 ? 'wr-pos' : 'wr-neg'}`}>WR {pct(agg.wins / agg.matches)}</span>
         </div>

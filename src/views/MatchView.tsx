@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Match, MPlayer, TeamId } from '../types'
 import { analyze, type RoundInfo } from '../lib/metrics'
-import { agentName, agentIcon, fmt0, mapName, pct, weaponName, weaponIcon } from '../lib/load'
+import { agentName, agentIcon, fmt0, mapName, pct, weaponName, weaponIcon, trackerUrl } from '../lib/load'
 import CoachStrip from './CoachStrip'
 
 const TEAMS: TeamId[] = ['Red', 'Blue']
@@ -31,7 +31,7 @@ export default function MatchView({ m, focusRound, onOpenCoach }: Props) {
      return (
        <tr key={p.p}>
         <td>{icon && <img className="aicon" src={icon} alt="" loading="lazy" />}{agentName(p.a)}</td>
-         <td>{p.n}</td>
+         <td>{p.n} <a className="tlink" href={trackerUrl(p.n)} target="_blank" rel="noreferrer" title="Perfil no tracker.gg">↗</a></td>
         <td className="num">
           <div className="statbar">
             <span>{fmt0(acs)}</span>

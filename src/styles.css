@@ -270,3 +270,11 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .ctxchip:hover { background: var(--surface); }
 .ctxchip .x { color: var(--muted); font-weight: 700; padding: 0 2px; }
 .ctxchip .x:hover { color: var(--bad); }
+
+/* link externo pro tracker.gg */
+.tlink {
+  display: inline-flex; align-items: center; gap: 2px;
+  color: var(--muted); font-size: 11px; text-decoration: none;
+  padding: 2px 5px; border-radius: 6px; vertical-align: middle;
+}
+.tlink:hover { color: var(--accent); background: var(--surface2); }

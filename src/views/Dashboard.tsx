@@ -2,7 +2,7 @@ import type { Match } from '../types'
 import type { PlayerAgg } from '../lib/metrics'
 import { analyze } from '../lib/metrics'
 import mappings from '../mappings.json'
- import { mapName, matchTitle, pct } from '../lib/load'
+ import { mapName, matchTitle, pct, trackerUrl } from '../lib/load'
 
 const icons = mappings as unknown as { maps: Record<string, { i: string }> }
 
@@ -51,7 +51,10 @@ export default function Dashboard({ matches, aggs, onMatch, onPlayer }: Props) {
             {ranking.map((g, i) => (
               <tr key={g.p} className="click" onClick={() => onPlayer(g.p)}>
                 <td className="sub">{i + 1}</td>
-                <td>{g.name}</td>
+                <td>
+                  {g.name}
+                  <a className="tlink" href={trackerUrl(g.name)} target="_blank" rel="noreferrer" title="Perfil no tracker.gg" onClick={(e) => e.stopPropagation()}>↗</a>
+                </td>
                 <td className="num">
                   <div className="statbar">
                     <b>{g.acs}</b>

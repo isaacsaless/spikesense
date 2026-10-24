@@ -43,6 +43,10 @@ export function agentIcon(uuid: string): string {
   return agentInfo(uuid)?.i ?? ''
 }
 
+/** Perfil do jogador no tracker.gg — "Isaac#venda" → tracker.gg/valorant/profile/riot/Isaac%23venda */
+export function trackerUrl(nameTag: string): string {
+  return `https://tracker.gg/valorant/profile/riot/${encodeURIComponent(nameTag)}`
+}
 export function weaponInfo(uuid: string, dt?: string): Asset | undefined {
   const k = lc(uuid)
   return mappings.weapons[k] ?? mappings.skins[k] ?? (dt === 'Melee' ? mappings.weapons['melee'] : undefined)
