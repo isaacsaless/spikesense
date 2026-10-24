@@ -7,6 +7,7 @@ import { clutchMoments, roundMoments } from './moments'
 import { agentName, mapName, weaponName, trackerUrl } from './load'
 import { searchRounds } from './roundsearch'
 import { searchVods } from './vodsearch'
+import { vodLabel } from './vodsearch'
 
 export interface ToolDef {
   name: string
@@ -339,8 +340,10 @@ export function buildTools(data: Dataset): Tool[] {
         const hits = await searchVods(String(args.consulta ?? ''), 5)
         return (
           hits
-            .map((h, i) => `${i + 1}. [${h.mmss}] ${h.text.slice(0, 280)}`)
-            .join('\n') || 'sem resultados — tente outros termos táticos'
+            .map((h) =>
+              `[${h.mmss} · ${vodLabel(h.video)}](vod://${h.videoIdx}/${Math.floor(h.start)})\n${h.text.slice(0, 280)}`,
+            )
+            .join('\n\n') || 'sem resultados — tente outros termos táticos'
         )
       } catch (e) {
         return `Serviço de VODs pro offline: ${e instanceof Error ? e.message : String(e)}`

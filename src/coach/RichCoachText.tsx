@@ -1,15 +1,9 @@
-// Renderizador das mensagens do coach com **negrito**, botões ▶ de deep-link
-// (spike://match/ID?round=N) e 🎬 de VOD pro (vod://consulta) — tudo via contexto.
+// Renderizador das mensagens do coach: **negrito**, botões ▶ de deep-link
+// (spike://match/ID?round=N) e player 🎬 INLINE de VOD pro (vod://<videoIdx>/<start>).
 import { useCoach } from './CoachContext'
-import { openVodSearch } from '../lib/vodsearch'
+import VodPlayer from './VodPlayer'
 
-function RichLine({
-  line,
-  onOpenMatch,
-}: {
-  line: string
-  onOpenMatch: (id: string, r: number) => void
-}) {
+function RichLine({ line, onOpenMatch }: { line: string; onOpenMatch: (id: string, r: number) => void }) {
   const parts = line.split(
     /(\*\*[^*]+\*\*|\[[^\]]+\]\(spike:\/\/match\/[^)]+\)|\[[^\]]+\]\(vod:\/\/[^)]+\))/g,
   )
@@ -29,17 +23,15 @@ function RichLine({
               ▶ {lm[1]}
             </button>
           )
-        const vm = part.match(/^\[([^\]]+)\]\(vod:\/\/([^)]+)\)$/)
+        const vm = part.match(/^\[([^\]]+)\]\(vod:\/\/(\d+)\/(\d+(?:\.\d+)?)\)$/)
         if (vm)
           return (
-            <button
+            <VodPlayer
               key={j}
-              className="chip"
-              style={{ borderColor: 'var(--warn)', color: 'var(--warn)' }}
-              onClick={() => openVodSearch(decodeURIComponent(vm[2]))}
-            >
-              🎬 {vm[1]}
-            </button>
+              videoIdx={Number(vm[2])}
+              start={Number(vm[3])}
+              label={vm[1]}
+            />
           )
         return <span key={j}>{part}</span>
       })}

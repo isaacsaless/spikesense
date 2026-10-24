@@ -30,7 +30,7 @@ export const AGENT_SYSTEM = `Você é o SpikeSense, coach técnico de VALORANT d
 • UTILITÁRIOS: casts/round (1.5–2.5 é referência), sincronia de execução, ult desperdiçada.
 • CLUTCH: protocolo de tempo, isolamento de duelos, matemática do round.
 • MOMENTOS: sempre que falar de clutches/rounds específicos, chame momentos_chave e NARRE onde o round virou: use a killTimeline (horários, quem matou quem, arma), o placar até o round e o tempo de plant para apontar a decisão exata que mudou o resultado ("aos 0:38 você peekou com spike plantada e 12s restantes — dava pra jogar o tempo"). Nos links use o campo roundLabel (numeração humana) no texto e o campo round no parâmetro: [Round {roundLabel} — Time A vs Time B](spike://match/ID?round={round}) — o app transforma em botão que abre o round exato.
-• REFERÊNCIAS PRO (obrigatório no Plano): depois de diagnosticar um problema tático (retake, clutch, pós-plant, execução, entrada, economia), chame buscar_partidas_pro com a situação equivalente em inglês e traga 1–2 momentos como modelo: "olha como dá pra jogar — na Champions aos [mmss], ...". Conecte explicitamente: o que o pro fez de diferente da jogada do jogador/time analisado. Sempre feche a referência com o link [🎬 assistir no VOD](vod://<consulta em inglês URL-encoded que você usou>) — o app abre o player. Se o serviço estiver offline, siga sem a referência.
+• REFERÊNCIAS PRO (obrigatório): depois de diagnosticar um problema tático (retake, clutch, pós-plant, execução, entrada, economia), chame buscar_partidas_pro com a situação equivalente em inglês e traga 1–2 momentos como modelo — INSIRA o link vod:// imediatamente ao lado da primeira menção da referência (não deixe para o final): "olha como dá pra jogar — na Champions [🎬 38:45 · Champions Shanghai](vod://12/2285), o time fez X, diferente de você que fez Y". Copie o link vod:// EXATAMENTE como a tool devolve. Se o serviço estiver offline, siga sem a referência.
 
 # Estilo
 - Português do Brasil, direto, como coach falando com seu time — sem enrolação corporativa.
@@ -66,6 +66,7 @@ export async function runCoachAgent(
   contents.push({ role: 'user', parts: [{ text: question }] })
 
   const trace: string[] = []
+  const vodLinks: string[] = []
   for (let step = 0; step < MAX_STEPS; step++) {
     const last = step === MAX_STEPS - 1
     const res = await fetch(ENDPOINT, {
@@ -75,7 +76,7 @@ export async function runCoachAgent(
         systemInstruction: { parts: [{ text: last ? `${AGENT_SYSTEM}\n\n# ÚLTIMO PASSO\nResponda AGORA com o que já coletou — não chame mais ferramentas.` : AGENT_SYSTEM }] },
         contents,
         ...(last ? {} : { tools: [declarations(tools)] }),
-        generationConfig: { temperature: 0.5, maxOutputTokens: 2400 },
+        generationConfig: { temperature: 0.5, maxOutputTokens: 4000 },
       }),
     })
     const json = (await res.json()) as GeminiResp
@@ -86,7 +87,15 @@ export async function runCoachAgent(
     const calls = parts.filter((p) => p.functionCall)
     if (!calls.length) {
       const text = parts.map((p) => p.text ?? '').join('').trim()
-      if (text) return { answer: text, trace }
+      if (text) {
+        // garantia determinística: anexa links de VOD que a tool devolveu
+        // mas o modelo não copiou na resposta
+        const missing = vodLinks.filter((l) => !text.includes(l.slice(0, l.indexOf(']'))))
+        const answer = missing.length
+          ? `${text}\n\n🎬 **Assista aqui:**\n${missing.join('\n')}`
+          : text
+        return { answer, trace }
+      }
       throw new Error('Modelo não retornou texto nem chamada de ferramenta')
     }
 
@@ -100,6 +109,12 @@ export async function runCoachAgent(
       let result: string
       try {
         result = tool ? await tool.fn(args) : `Ferramenta "${fc.name}" não existe.`
+        if (fc.name === 'buscar_partidas_pro') {
+          const found = result.match(/\[[^\]]+\]\(vod:\/\/\d+\/\d+\)/g) ?? []
+          vodLinks.push(...found)
+          if (found.length) trace.push(`🎬 ${found.length} clipes pro`)
+          else trace.push(`⚠️ vod:${result.slice(0, 50)}`)
+        }
       } catch (e) {
         result = `Erro na ferramenta: ${e instanceof Error ? e.message : String(e)}`
       }
