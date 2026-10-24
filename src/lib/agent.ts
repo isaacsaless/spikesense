@@ -8,7 +8,7 @@ import type { ChatMsg } from './gemini'
 
 const MODEL = 'gemini-3.8-flash'
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`
-const MAX_STEPS = 10
+const MAX_STEPS = 12
 
 export interface AgentResult {
   answer: string
@@ -75,7 +75,9 @@ export async function runCoachAgent(
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: last ? `${AGENT_SYSTEM}\n\n# ÚLTIMO PASSO\nResponda AGORA com o que já coletou — não chame mais ferramentas.` : AGENT_SYSTEM }] },
         contents,
-        ...(last ? {} : { tools: [declarations(tools)] }),
+        ...(last
+          ? { toolConfig: { functionCallingConfig: { mode: 'NONE' } } }
+          : { tools: [declarations(tools)] }),
         generationConfig: { temperature: 0.5, maxOutputTokens: 4000 },
       }),
     })
@@ -124,5 +126,9 @@ export async function runCoachAgent(
       })
     }
   }
-  throw new Error('Agente excedeu o número de passos sem resposta final')
+  // nunca estoura: resume o que já foi coletado de forma determinística
+  const summary = trace.length
+    ? `Consultei a base (${trace.length} buscas) mas não fechei uma análise. Pergunte de forma mais específica — ex.: "onde o time X perde rounds no site A?"`
+    : 'Não consegui montar uma resposta. Tente reformular a pergunta.'
+  return { answer: summary, trace }
 }
