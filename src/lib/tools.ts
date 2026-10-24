@@ -326,20 +326,24 @@ export function buildTools(data: Dataset): Tool[] {
 
   tools.push({
     declaration: {
-      name: 'buscar_vods',
-      description: 'Busca semântica em transcrições de VODs de broadcast (Champions) com timestamps — para referências de pros. O texto do cast está em inglês; consultas em inglês funcionam melhor ("site B retake", "clutch 1v2").',
+      name: 'buscar_partidas_pro',
+      description: 'Busca em VODs de partidas PROFISSIONAIS de VALORANT (Champions, transcrição do cast em inglês com timestamps). Use como REFERÊNCIA DE COMO JOGAR: dado um problema diagnosticado (retake, clutch, pós-plant, execução, economia), busque como os pros resolveram a mesma situação e cite o momento ("na Champions, aos 38:45, o time X..."). Consulte em INGLÊS com termos táticos (ex.: "site B retake post-plant hold", "1v2 clutch defuse timing").',
       parameters: {
         type: 'object',
-        properties: { consulta: { type: 'string', description: 'Consulta (inglês recomendado)' } },
+        properties: { consulta: { type: 'string', description: 'Situação tática em inglês (ex.: "retake B site with util")' } },
         required: ['consulta'],
       },
     },
     fn: async (args) => {
       try {
         const hits = await searchVods(String(args.consulta ?? ''), 5)
-        return hits.map((h, i) => `${i + 1}. [${h.mmss}] ${h.text.slice(0, 220)}`).join('\n') || 'sem resultados'
+        return (
+          hits
+            .map((h, i) => `${i + 1}. [${h.mmss}] ${h.text.slice(0, 280)}`)
+            .join('\n') || 'sem resultados — tente outros termos táticos'
+        )
       } catch (e) {
-        return `Serviço de VODs offline: ${e instanceof Error ? e.message : String(e)}`
+        return `Serviço de VODs pro offline: ${e instanceof Error ? e.message : String(e)}`
       }
     },
   })
